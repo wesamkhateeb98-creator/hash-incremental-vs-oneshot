@@ -6,9 +6,6 @@ public sealed record Measurement(
     string Method,
     TimeSpan Elapsed,
     long AllocatedBytes,
-    int Gen0,
-    int Gen1,
-    int Gen2,
     TimeSpan GcPause,
     byte[] Digest)
 {
@@ -17,12 +14,6 @@ public sealed record Measurement(
 
     public static Measurement Run(string method, Func<byte[][], byte[]> hasher, byte[][] messages)
     {
-        var gen0Before = GC.CollectionCount(0);
-
-        var gen1Before = GC.CollectionCount(1);
-
-        var gen2Before = GC.CollectionCount(2);
-
         var pauseBefore = GC.GetTotalPauseDuration();
 
         var allocatedBefore = GC.GetAllocatedBytesForCurrentThread();
@@ -39,9 +30,6 @@ public sealed record Measurement(
             method,
             stopwatch.Elapsed,
             allocated,
-            GC.CollectionCount(0) - gen0Before,
-            GC.CollectionCount(1) - gen1Before,
-            GC.CollectionCount(2) - gen2Before,
             GC.GetTotalPauseDuration() - pauseBefore,
             digest);
     }
