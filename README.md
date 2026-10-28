@@ -344,6 +344,41 @@ Measured with this repo (Intel i5-7200U, no SHA-NI, .NET 10.0.13, Release, 10 lo
 
 ## 7. The benchmark
 
+### Terms: message and batch
+
+| Term | Definition | In this repo |
+|---|---|---|
+| **Message** | One piece of data to hash | One `byte[]` of 1024 random bytes (`--message-size`) |
+| **Batch** | All the messages hashed together into **one** 32 B digest | 1000 messages (`--messages-count`) = 1,024,000 B |
+
+One batch = one measured operation, so **Batches/s** = whole batches hashed per second and **Messages/s** = Batches/s × messages-count.
+
+```
+Initial data:
+  message size      : 1024 B
+  messages-count    : 1000
+  batch size        : 1000 × 1024 = 1,024,000 B (~1 MB)
+
+Commands:
+  one-shot(batch)   : copy 1000 messages → 1 MB buffer → SHA256.HashData → 32 B
+  incremental(batch): AppendData × 1000 → GetHashAndReset → 32 B
+
+Result:
+  digest            : 2226b125…598d98554 (same for both)
+  avg time / batch  : 3.776 ms (one-shot), 3.151 ms (incremental)
+  Batches/s         : 1 / 0.003776 s ≈ 265 (one-shot)
+  Messages/s        : 265 × 1000 ≈ 264,823 (one-shot)
+```
+
+```mermaid
+flowchart LR
+    M1["message 1 (1024 B)"] --> B
+    M2["message 2 (1024 B)"] --> B
+    MN["… message 1000"] --> B
+    B["Batch = 1000 messages<br/>1,024,000 B"] --> H[SHA-256]
+    H --> D["1 digest (32 B)"]
+```
+
 ### What it does
 
 ```mermaid
